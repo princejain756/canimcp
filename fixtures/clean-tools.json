@@ -1,0 +1,39 @@
+{
+  "tools": [
+    {
+      "name": "get_order",
+      "description": "Get one order by id",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "order_id": { "type": "string", "description": "order id" }
+        },
+        "required": ["order_id"]
+      }
+    },
+    {
+      "name": "list_products",
+      "description": "List products with optional filters",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "category": { "type": "string", "enum": ["books", "games", "music"] },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 200 }
+        }
+      }
+    },
+    {
+      "name": "create_ticket",
+      "description": "Create a support ticket",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "subject": { "type": "string" },
+          "body": { "type": "string" },
+          "priority": { "type": "string", "enum": ["low", "normal", "high"] }
+        },
+        "required": ["subject", "body"]
+      }
+    }
+  ]
+}

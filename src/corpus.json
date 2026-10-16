@@ -1,0 +1,178 @@
+{
+  "name": "canimcp quirks corpus",
+  "version": "2026.10.16",
+  "note": "Client-version-scoped MCP quirks distilled from published reproductions. evidence: measured = run under a harness against pinned client binaries; probe = direct binary probe, a lead until measured; historical = cleared at tested versions, still worth knowing for pinned/older clients.",
+  "clients": {
+    "claude-code": { "label": "Claude Code", "tested": ["2.1.287", "2.1.295"] },
+    "codex": { "label": "Codex CLI", "tested": ["0.162.0"] }
+  },
+  "sources": [
+    {
+      "id": "m3-quirks-2026-10",
+      "url": "https://m3.sineframe.com/blog/claude-code-vs-codex-mcp",
+      "kind": "measured",
+      "note": "SineFrame Harness Quirks Matrix, 2026-10-09. 10 features x Claude Code 2.1.287 x Codex 0.162.0, 3 trials/cell."
+    },
+    {
+      "id": "m3-probes-2026-10",
+      "url": "https://m3.sineframe.com/blog/claude-code-vs-codex-mcp",
+      "kind": "probe",
+      "note": "Direct probes of Claude Code 2.1.295 and Codex 0.162.0 binaries, same article. Not yet measured under the harness."
+    },
+    {
+      "id": "reddit-mcp-thread-2026-10",
+      "url": "https://reddit.com/r/mcp/comments/1x2bnc5/claude_code_and_codex_break_on_different_mcp/",
+      "kind": "field-report",
+      "note": "r/mcp reports: a tool silently dropped for 17 days over a root oneOf; tool-name length/charset truncation; clients missing tools with no error either side."
+    }
+  ],
+  "rules": [
+    {
+      "id": "arg-name-brackets",
+      "title": "argument name containing [ ]",
+      "severity": "error",
+      "clients": { "claude-code": "2.1.287" },
+      "evidence": "measured",
+      "source": "m3-quirks-2026-10",
+      "detect": { "family": "arg-name-pattern", "pattern": "[\\[\\]]" },
+      "message": "Claude Code never calls a tool whose input property is named like \"ids[]\" - the tool is silently absent from its list (0/3 runs). OpenAPI-generated servers often emit these names.",
+      "fix": "rename the property to a bare identifier, e.g. \"ids\" or \"id_list\""
+    },
+    {
+      "id": "root-composition-adjacent",
+      "title": "root oneOf/anyOf next to properties",
+      "severity": "error",
+      "clients": { "codex": "0.162.0" },
+      "evidence": "probe",
+      "source": "m3-probes-2026-10",
+      "detect": { "family": "root-composition" },
+      "message": "A root oneOf or anyOf placed next to \"properties\" made Codex lose the property names - the call reached the server with mangled arguments. r/mcp reports a production tool silently dropped 17 days over a root oneOf.",
+      "fix": "move the composition inside each property, or wrap the object so \"properties\" is not a sibling of oneOf/anyOf"
+    },
+    {
+      "id": "missing-root-type",
+      "title": "tool inputSchema with no root type",
+      "severity": "error",
+      "clients": { "claude-code": "2.1.295" },
+      "evidence": "probe",
+      "source": "m3-probes-2026-10",
+      "detect": { "family": "missing-root-type" },
+      "message": "One tool whose inputSchema has no root \"type\" made Claude Code drop the entire server's tool list.",
+      "fix": "set \"type\": \"object\" on every tool inputSchema"
+    },
+    {
+      "id": "tool-count-overflow",
+      "title": "more than 2048 tools on one server",
+      "severity": "error",
+      "clients": { "codex": "0.162.0" },
+      "evidence": "probe",
+      "source": "m3-probes-2026-10",
+      "detect": { "family": "tool-count", "max": 2048 },
+      "message": "With 2049 tools on one server, Codex silently dropped every tool past the 2048th.",
+      "fix": "split the server, or gate rare tools behind a meta/discovery tool"
+    },
+    {
+      "id": "large-input-schema",
+      "title": "inputSchema over ~14 KB",
+      "severity": "warn",
+      "clients": { "codex": "0.162.0" },
+      "evidence": "measured",
+      "source": "m3-quirks-2026-10",
+      "detect": { "family": "schema-bytes", "bytes": 14336 },
+      "message": "Codex compacts large input schemas to fit a per-server budget (~20 KB). A 14 KB schema lost its required nested fields and calls arrived incomplete (0/3).",
+      "fix": "shrink the schema (shared $defs help), or raise Codex's per-server schema budget to 20000 if you control the client"
+    },
+    {
+      "id": "enum-in-composition",
+      "title": "enum inside anyOf/oneOf in a >5 KB schema",
+      "severity": "warn",
+      "clients": { "codex": "0.162.0" },
+      "evidence": "probe",
+      "source": "m3-probes-2026-10",
+      "detect": { "family": "enum-in-composition", "minSchemaBytes": 5120 },
+      "message": "An enum nested inside anyOf in a schema over 5 KB had the enum erased by Codex's schema compaction - the model no longer saw the allowed values.",
+      "fix": "hoist the enum to the property root, or shrink the schema under ~5 KB"
+    },
+    {
+      "id": "prefixitems-tuple",
+      "title": "prefixItems tuple in inputSchema",
+      "severity": "warn",
+      "clients": { "codex": "0.162.0" },
+      "evidence": "probe",
+      "source": "m3-probes-2026-10",
+      "detect": { "family": "structure-has", "keyword": "prefixItems" },
+      "message": "A prefixItems tuple was declared to the model as Array<string> - the per-position types were erased.",
+      "fix": "model the arguments as an object with named properties instead of a positional tuple"
+    },
+    {
+      "id": "int64-arg",
+      "title": "integer argument that can exceed 2^53",
+      "severity": "warn",
+      "clients": { "claude-code": "2.1.295", "codex": "0.162.0" },
+      "evidence": "probe",
+      "source": "m3-probes-2026-10",
+      "detect": { "family": "int64-arg" },
+      "message": "int64 value 1234567890123456789 arrived rounded on Claude Code, and string-or-rounded on Codex.",
+      "fix": "accept big integers as strings and parse on the server"
+    },
+    {
+      "id": "similar-tool-names",
+      "title": "tool names that collide when normalized",
+      "severity": "warn",
+      "clients": { "claude-code": "2.1.295" },
+      "evidence": "probe",
+      "source": "m3-probes-2026-10",
+      "detect": { "family": "name-collision" },
+      "message": "fetch.page and fetch_page on the same server: one was misrouted by Claude Code.",
+      "fix": "keep tool names distinct after removing non-alphanumeric characters"
+    },
+    {
+      "id": "outputschema-fidelity",
+      "title": "outputSchema declared - result shape matters",
+      "severity": "advisory",
+      "clients": { "claude-code": "2.1.287" },
+      "evidence": "measured",
+      "source": "m3-quirks-2026-10",
+      "detect": { "family": "outputschema-present" },
+      "message": "When a result carried both content text and structuredContent, Claude Code surfaced only the structured value; when a tool declared outputSchema but returned text only, a success was surfaced as an error.",
+      "fix": "if you declare outputSchema, always return structuredContent; repeat anything critical in the text content too"
+    },
+    {
+      "id": "long-tool-name",
+      "title": "tool name over 64 chars or non-ASCII charset",
+      "severity": "advisory",
+      "clients": {},
+      "evidence": "historical",
+      "source": "reddit-mcp-thread-2026-10",
+      "detect": { "family": "name-charset", "maxLen": 64, "pattern": "^[A-Za-z0-9_-]+$" },
+      "message": "Some clients have silently truncated or rejected long/unusual tool names. A 65-char name worked on Claude Code 2.1.287 and Codex 0.162.0, but older or enterprise-pinned clients may still drop it.",
+      "fix": "keep names under 64 chars, [A-Za-z0-9_-] only"
+    }
+  ],
+  "advisories": [
+    {
+      "id": "tools-list-stale",
+      "clients": { "codex": "0.162.0" },
+      "evidence": "measured",
+      "source": "m3-quirks-2026-10",
+      "message": "After a server's tool list changed, Codex kept using its old catalog and never called the new tool (0/3).",
+      "fix": "restart the client session after deploying new tools"
+    },
+    {
+      "id": "error-middle-truncated",
+      "clients": { "claude-code": "2.1.287" },
+      "evidence": "measured",
+      "source": "m3-quirks-2026-10",
+      "message": "Claude Code keeps roughly the first and last 5000 characters of a tool error - a marker in the middle of a 12000-char error never reached the model.",
+      "fix": "put code, reason and next step at the start of error messages"
+    },
+    {
+      "id": "schema-never-seen",
+      "clients": { "codex": "0.162.0" },
+      "evidence": "measured",
+      "source": "m3-quirks-2026-10",
+      "message": "With gpt-5.6-sol, Codex runs in code mode: the model never sees your JSON Schema, only a compacted TypeScript declaration generated from it - several Codex failures happen in that translation.",
+      "fix": "assume the client sees a lossy projection of your schema, not the schema itself"
+    }
+  ]
+}

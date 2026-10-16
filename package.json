@@ -1,0 +1,42 @@
+{
+  "name": "canimcp",
+  "version": "0.1.0",
+  "description": "Caniuse for MCP servers: check which clients (Claude Code, Codex, ...) silently drop or mangle your tools - a static preflight against a versioned quirks corpus.",
+  "type": "module",
+  "bin": {
+    "canimcp": "bin/canimcp.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "scripts": {
+    "test": "node test/run.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "mcp-testing",
+    "claude-code",
+    "codex",
+    "ai-agents",
+    "lint",
+    "compatibility",
+    "caniuse",
+    "devtools"
+  ],
+  "author": "Prince Jain <princejain756@gmail.com> (https://github.com/princejain756)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/princejain756/canimcp.git"
+  },
+  "homepage": "https://github.com/princejain756/canimcp#readme",
+  "bugs": {
+    "url": "https://github.com/princejain756/canimcp/issues"
+  }
+}

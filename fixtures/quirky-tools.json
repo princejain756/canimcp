@@ -1,0 +1,412 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "tools": [
+      {
+        "name": "list_orders",
+        "description": "List orders by a set of ids",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "ids[]": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "order ids"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "ids[]"
+          ]
+        }
+      },
+      {
+        "name": "fetch.page",
+        "description": "Fetch a page",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "url"
+          ]
+        }
+      },
+      {
+        "name": "fetch_page",
+        "description": "Fetch a page (legacy alias)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "url"
+          ]
+        }
+      },
+      {
+        "name": "classify_ticket",
+        "description": "Classify a support ticket",
+        "inputSchema": {
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "create_payment",
+        "description": "Create a payment",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "number"
+            }
+          },
+          "oneOf": [
+            {
+              "required": [
+                "currency"
+              ]
+            },
+            {
+              "required": [
+                "currencyCode"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "name": "batch_insert",
+        "description": "Insert rows positionally",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "rows": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ],
+              "items": false
+            }
+          },
+          "required": [
+            "rows"
+          ]
+        }
+      },
+      {
+        "name": "search_events",
+        "description": "Search events",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "since": {
+              "type": "integer",
+              "format": "int64",
+              "description": "epoch ms"
+            },
+            "until": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000000000000000
+            }
+          }
+        }
+      },
+      {
+        "name": "update_order_status",
+        "description": "Update order status",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "order": {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "pending",
+                        "paid",
+                        "shipped"
+                      ]
+                    },
+                    {
+                      "enum": [
+                        "cancelled",
+                        "refunded"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "$defs": {}
+        },
+        "outputSchema": {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      {
+        "name": "generate_report_for_customer_account_with_full_history_and_exports",
+        "description": "Generate a report",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      {
+        "name": "sync_catalog",
+        "description": "Sync the settlement catalog with export filters (generated)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "customer_id": {
+              "type": "string",
+              "description": "Filter results by customer id. This optional parameter corresponds to the customer_id column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, customer id participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "start_date": {
+              "type": "string",
+              "description": "Filter results by start date. This optional parameter corresponds to the start_date column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, start date participates in server-side AND matching and is recorded in the export audit trail for idempotency.",
+              "format": "date-time"
+            },
+            "end_date": {
+              "type": "string",
+              "description": "Filter results by end date. This optional parameter corresponds to the end_date column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, end date participates in server-side AND matching and is recorded in the export audit trail for idempotency.",
+              "format": "date-time"
+            },
+            "region": {
+              "type": "string",
+              "description": "Filter results by region. This optional parameter corresponds to the region column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, region participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "country_code": {
+              "type": "string",
+              "description": "Filter results by country code. This optional parameter corresponds to the country_code column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, country code participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "currency": {
+              "type": "string",
+              "description": "Filter results by currency. This optional parameter corresponds to the currency column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, currency participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "include_refunds": {
+              "type": "boolean",
+              "description": "Filter results by include refunds. This optional parameter corresponds to the include_refunds column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, include refunds participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "include_chargebacks": {
+              "type": "boolean",
+              "description": "Filter results by include chargebacks. This optional parameter corresponds to the include_chargebacks column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, include chargebacks participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "min_amount": {
+              "type": "number",
+              "description": "Filter results by min amount. This optional parameter corresponds to the min_amount column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, min amount participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "max_amount": {
+              "type": "number",
+              "description": "Filter results by max amount. This optional parameter corresponds to the max_amount column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, max amount participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "payment_method": {
+              "type": "string",
+              "description": "Filter results by payment method. This optional parameter corresponds to the payment_method column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, payment method participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "card_brand": {
+              "type": "string",
+              "description": "Filter results by card brand. This optional parameter corresponds to the card_brand column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, card brand participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "card_last4": {
+              "type": "string",
+              "description": "Filter results by card last4. This optional parameter corresponds to the card_last4 column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, card last4 participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "bank_account_id": {
+              "type": "string",
+              "description": "Filter results by bank account id. This optional parameter corresponds to the bank_account_id column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, bank account id participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "upi_handle": {
+              "type": "string",
+              "description": "Filter results by upi handle. This optional parameter corresponds to the upi_handle column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, upi handle participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "gateway": {
+              "type": "string",
+              "description": "Filter results by gateway. This optional parameter corresponds to the gateway column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, gateway participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "gateway_reference": {
+              "type": "string",
+              "description": "Filter results by gateway reference. This optional parameter corresponds to the gateway_reference column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, gateway reference participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "merchant_id": {
+              "type": "string",
+              "description": "Filter results by merchant id. This optional parameter corresponds to the merchant_id column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, merchant id participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "terminal_id": {
+              "type": "string",
+              "description": "Filter results by terminal id. This optional parameter corresponds to the terminal_id column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, terminal id participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "pos_entry_mode": {
+              "type": "string",
+              "description": "Filter results by pos entry mode. This optional parameter corresponds to the pos_entry_mode column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, pos entry mode participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "auth_code": {
+              "type": "string",
+              "description": "Filter results by auth code. This optional parameter corresponds to the auth_code column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, auth code participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "rrn": {
+              "type": "string",
+              "description": "Filter results by rrn. This optional parameter corresponds to the rrn column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, rrn participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "invoice_number": {
+              "type": "string",
+              "description": "Filter results by invoice number. This optional parameter corresponds to the invoice_number column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, invoice number participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "order_reference": {
+              "type": "string",
+              "description": "Filter results by order reference. This optional parameter corresponds to the order_reference column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, order reference participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "customer_email": {
+              "type": "string",
+              "description": "Filter results by customer email. This optional parameter corresponds to the customer_email column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, customer email participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "customer_phone": {
+              "type": "string",
+              "description": "Filter results by customer phone. This optional parameter corresponds to the customer_phone column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, customer phone participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "billing_address": {
+              "type": "string",
+              "description": "Filter results by billing address. This optional parameter corresponds to the billing_address column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, billing address participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "shipping_address": {
+              "type": "string",
+              "description": "Filter results by shipping address. This optional parameter corresponds to the shipping_address column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, shipping address participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "tax_id": {
+              "type": "string",
+              "description": "Filter results by tax id. This optional parameter corresponds to the tax_id column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, tax id participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "loyalty_tier": {
+              "type": "string",
+              "description": "Filter results by loyalty tier. This optional parameter corresponds to the loyalty_tier column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, loyalty tier participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "discount_code": {
+              "type": "string",
+              "description": "Filter results by discount code. This optional parameter corresponds to the discount_code column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, discount code participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "coupon_batch": {
+              "type": "string",
+              "description": "Filter results by coupon batch. This optional parameter corresponds to the coupon_batch column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, coupon batch participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "settlement_state": {
+              "type": "string",
+              "description": "Filter results by settlement state. This optional parameter corresponds to the settlement_state column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, settlement state participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "reconciliation_id": {
+              "type": "string",
+              "description": "Filter results by reconciliation id. This optional parameter corresponds to the reconciliation_id column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, reconciliation id participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "payout_id": {
+              "type": "string",
+              "description": "Filter results by payout id. This optional parameter corresponds to the payout_id column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, payout id participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "refund_id": {
+              "type": "string",
+              "description": "Filter results by refund id. This optional parameter corresponds to the refund_id column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, refund id participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "dispute_id": {
+              "type": "string",
+              "description": "Filter results by dispute id. This optional parameter corresponds to the dispute_id column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, dispute id participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "risk_score_min": {
+              "type": "number",
+              "description": "Filter results by risk score min. This optional parameter corresponds to the risk_score_min column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, risk score min participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "risk_score_max": {
+              "type": "number",
+              "description": "Filter results by risk score max. This optional parameter corresponds to the risk_score_max column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, risk score max participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "fraud_flag": {
+              "type": "boolean",
+              "description": "Filter results by fraud flag. This optional parameter corresponds to the fraud_flag column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, fraud flag participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "kyc_status": {
+              "type": "string",
+              "description": "Filter results by kyc status. This optional parameter corresponds to the kyc_status column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, kyc status participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "mandate_id": {
+              "type": "string",
+              "description": "Filter results by mandate id. This optional parameter corresponds to the mandate_id column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, mandate id participates in server-side AND matching and is recorded in the export audit trail for idempotency.",
+              "format": "date-time"
+            },
+            "subscription_id": {
+              "type": "string",
+              "description": "Filter results by subscription id. This optional parameter corresponds to the subscription_id column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, subscription id participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "plan_code": {
+              "type": "string",
+              "description": "Filter results by plan code. This optional parameter corresponds to the plan_code column of the underlying settlement export and is applied before pagination is evaluated. When combined with other filters, plan code participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            },
+            "status": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "INITIATED",
+                    "PENDING",
+                    "AUTHORIZED",
+                    "CAPTURED",
+                    "SETTLED",
+                    "PARTIALLY_REFUNDED"
+                  ]
+                },
+                {
+                  "enum": [
+                    "REFUNDED",
+                    "DISPUTED",
+                    "CHARGED_BACK",
+                    "FAILED",
+                    "EXPIRED",
+                    "CANCELLED"
+                  ]
+                }
+              ],
+              "description": "Lifecycle status filter generated from the payments state machine enum. When combined with other filters, status participates in server-side AND matching and is recorded in the export audit trail for idempotency."
+            }
+          },
+          "$defs": {}
+        }
+      }
+    ]
+  }
+}

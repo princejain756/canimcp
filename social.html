@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  body { margin: 0; width: 1280px; height: 640px; background: #0b0e14; display: flex; font-family: "SF Mono", Menlo, monospace; overflow: hidden; }
+  .left { width: 44%; padding: 56px 44px; border-right: 1px solid #21262d; background: #0d1117; display: flex; flex-direction: column; justify-content: center; }
+  .name { color: #79c0ff; font-size: 52px; font-weight: 700; margin-bottom: 22px; }
+  .tag { color: #7d8590; font-size: 24px; line-height: 1.55; margin-bottom: 40px; }
+  .cmd { color: #3fb950; font-size: 19px; }
+  .right { width: 56%; padding: 56px 40px; display: flex; flex-direction: column; justify-content: center; }
+  .f { color: #c9d1d9; font-size: 20px; line-height: 2.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .f b { font-weight: 700; margin-right: 12px; }
+  .e { color: #f85149; } .w { color: #d29922; } .a { color: #bc8cff; }
+  .foot { color: #7d8590; font-size: 16px; margin-top: 26px; }
+</style></head><body>
+<div class="left">
+  <div class="name">canimcp</div>
+  <div class="tag">Which clients silently break your MCP server's tools.<br><br>caniuse, for MCP.</div>
+  <div class="cmd">$ npx canimcp --cmd "node server.js"</div>
+</div>
+<div class="right">
+  <div class="f"><b class="e">[error]</b>root-composition-adjacent · codex 0.162.0</div>
+  <div class="f"><b class="w">[ warn]</b>prefixitems-tuple · codex 0.162.0</div>
+  <div class="f"><b class="w">[ warn]</b>int64-arg · claude-code 2.1.295, codex 0.162.0</div>
+  <div class="f"><b class="w">[ warn]</b>int64-arg · claude-code 2.1.295, codex 0.162.0</div>
+  <div class="f"><b class="w">[ warn]</b>large-input-schema · codex 0.162.0</div>
+  <div class="f"><b class="w">[ warn]</b>enum-in-composition · codex 0.162.0</div>
+  <div class="f"><b class="a">[ adv ]</b>long-tool-name · older/pinned clients</div>
+  <div class="foot">findings scoped to client version + evidence grade</div>
+</div>
+</body></html>
