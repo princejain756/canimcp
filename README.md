@@ -63,6 +63,12 @@ Rules live in [`src/corpus.json`](src/corpus.json), not in code. Every entry car
 - **English-language corpus, JSON Schema only.** It lints `tools/list` shapes. It does not inspect resources, prompts, or auth flows.
 - **Generated-schema edge cases.** `$ref` resolution handles local `#/$defs`/`#/definitions`; external refs are left as-is and may hide findings.
 
+## agent skill
+
+Also on [Agensi](https://www.agensi.io/skills/canimcp) as an installable agent
+skill: same lint, packaged with a runner script and a quirk playbook so your
+agent can check and fix in one step.
+
 ## related
 
 - [mcp-bouncer](https://github.com/princejain756/mcp-bouncer) - runtime policy for MCP servers (allowlists, path/URL rules, rate limits, audit log)
