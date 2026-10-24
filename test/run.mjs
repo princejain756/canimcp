@@ -80,5 +80,20 @@ ok(adv.out.includes("tools-list-stale") && adv.code === 0, "--advisories lists r
 const cor = run(["--corpus"], { cwd: root });
 ok(cor.out.includes("m3-quirks-2026-10") && cor.out.includes("measured"), "--corpus prints evidence sources");
 
+// 11. --format sarif, --format json, --flag=value, and invalid --format
+const sarif = run(["fixtures/quirky-tools.json", "--format", "sarif"], { cwd: root });
+const sarifJson = JSON.parse(sarif.out);
+ok(sarif.code === 1 && sarifJson.version === "2.1.0" && sarifJson.runs?.[0]?.results?.length === qj.findings.length, "--format sarif produces valid SARIF 2.1.0 report");
+ok(sarifJson.runs[0].tool.driver.rules.length > 0 && sarifJson.runs[0].results.every((r) => r.ruleId && r.level), "SARIF rules and result levels populated");
+
+const fmtJson = run(["fixtures/clean-tools.json", "--format=json"], { cwd: root });
+ok(fmtJson.code === 0 && JSON.parse(fmtJson.out).tool === "canimcp", "--format=json works via = syntax");
+
+const badFmt = run(["fixtures/clean-tools.json", "--format", "xml"], { cwd: root });
+ok(badFmt.code === 2 && badFmt.out.includes("--format must be one of"), "unknown --format exits 2");
+
+const ghEscape = run(["--cmd=node fixtures/fake-server.mjs", "--format=github"], { cwd: root });
+ok(ghEscape.out.includes("::error file=node fixtures/fake-server.mjs::"), "--cmd=... with --format=github works");
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

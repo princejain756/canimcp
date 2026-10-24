@@ -1,5 +1,22 @@
 const SEV_ICON = { error: "error", warn: " warn", advisory: " adv " };
 const GH_LEVEL = { error: "error", warn: "warning", advisory: "notice" };
+const SARIF_LEVEL = { error: "error", warn: "warning", advisory: "note" };
+
+function escapeGhProperty(val) {
+  return String(val ?? "")
+    .replace(/%/g, "%25")
+    .replace(/\r/g, "%0D")
+    .replace(/\n/g, "%0A")
+    .replace(/:/g, "%3A")
+    .replace(/,/g, "%2C");
+}
+
+function escapeGhData(val) {
+  return String(val ?? "")
+    .replace(/%/g, "%25")
+    .replace(/\r/g, "%0D")
+    .replace(/\n/g, "%0A");
+}
 
 function clientsLabel(clients) {
   const entries = Object.entries(clients || {});
@@ -62,11 +79,70 @@ export function jsonReport(result, label, version) {
 }
 
 export function githubReport({ findings }, file = "tools-list.json") {
+  const safeFile = escapeGhProperty(file);
   return findings
     .map((f) => {
       const scope = f.tool ? `tool "${f.tool}" ${f.path}` : "server";
       const msg = `[${f.rule}] ${scope}: ${f.detail} - ${f.message} Fix: ${f.fix} (${clientsLabel(f.clients)}, evidence: ${f.evidence})`;
-      return `::${GH_LEVEL[f.severity]} file=${file}::${msg.replace(/[\r\n]+/g, " ")}`;
+      return `::${GH_LEVEL[f.severity]} file=${safeFile}::${escapeGhData(msg.replace(/[\r\n]+/g, " "))}`;
     })
     .join("\n");
+}
+
+export function sarifReport({ findings, corpusVersion }, file = "tools-list.json", version = "0.1.0") {
+  const rulesMap = new Map();
+  for (const f of findings) {
+    if (!rulesMap.has(f.rule)) {
+      rulesMap.set(f.rule, {
+        id: f.rule,
+        shortDescription: { text: f.message },
+        help: { text: `${f.message}\nFix: ${f.fix}\nSource: ${f.source} (${f.evidence})` },
+        defaultConfiguration: { level: SARIF_LEVEL[f.severity] || "warning" }
+      });
+    }
+  }
+  const uri = /^[a-zA-Z0-9._/-]+$/.test(file) ? file : "tools-list.json";
+  return JSON.stringify(
+    {
+      $schema: "https://json.schemastore.org/sarif-2.1.0.json",
+      version: "2.1.0",
+      runs: [
+        {
+          tool: {
+            driver: {
+              name: "canimcp",
+              version,
+              informationUri: "https://github.com/princejain756/canimcp",
+              properties: { corpusVersion },
+              rules: Array.from(rulesMap.values())
+            }
+          },
+          results: findings.map((f) => ({
+            ruleId: f.rule,
+            level: SARIF_LEVEL[f.severity] || "warning",
+            message: {
+              text: `${f.tool ? `tool "${f.tool}" (${f.path})` : "server"}: ${f.detail}. ${f.message} Fix: ${f.fix}`
+            },
+            locations: [
+              {
+                physicalLocation: {
+                  artifactLocation: { uri }
+                },
+                logicalLocations: f.tool
+                  ? [{ name: f.tool, fullyQualifiedName: `${f.tool}${f.path ? `:${f.path}` : ""}`, kind: "function" }]
+                  : []
+              }
+            ],
+            properties: {
+              clients: f.clients,
+              evidence: f.evidence,
+              source: f.source
+            }
+          }))
+        }
+      ]
+    },
+    null,
+    2
+  );
 }

@@ -2,7 +2,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { runChecks, loadCorpus } from "../src/checks.js";
 import { parseToolsJson, collectViaStdio } from "../src/collect.js";
-import { textReport, advisoriesReport, jsonReport, githubReport } from "../src/report.js";
+import { textReport, advisoriesReport, jsonReport, githubReport, sarifReport } from "../src/report.js";
 
 const VERSION = "0.1.0";
 
@@ -15,8 +15,8 @@ usage:
 
 flags:
   --client <name>     only report rules affecting this client (claude-code, codex)
-  --json              machine-readable report
-  --format github     ::error/::warning annotations for Actions
+  --json              machine-readable report (shorthand for --format json)
+  --format <fmt>      output format: text (default), json, github, sarif
   --fail-on <sev>     exit 1 at this severity or worse: error (default), warn, advisory, never
   --advisories        list runtime quirks the corpus knows but a schema cannot reveal
   --corpus            print corpus version and evidence sources
@@ -34,9 +34,17 @@ if (args.includes("-h") || args.includes("--help")) { console.log(HELP); process
 if (args.includes("-v") || args.includes("--version")) { console.log(VERSION); process.exit(0); }
 
 const idx = (n) => args.indexOf(n);
-const val = (n) => (idx(n) !== -1 ? args[idx(n) + 1] : undefined);
-const json = args.includes("--json");
-const ghFmt = val("--format") === "github";
+const val = (n) => {
+  const eq = args.find((a) => a.startsWith(`${n}=`));
+  if (eq !== undefined) return eq.slice(n.length + 1);
+  return idx(n) !== -1 ? args[idx(n) + 1] : undefined;
+};
+const VALID_FORMATS = new Set(["text", "json", "github", "sarif"]);
+const rawFormat = val("--format") ?? (args.includes("--json") ? "json" : "text");
+if (!VALID_FORMATS.has(rawFormat)) {
+  console.error(`canimcp: --format must be one of ${Array.from(VALID_FORMATS).join(", ")}`);
+  process.exit(2);
+}
 const color = !args.includes("--no-color") && process.stdout.isTTY !== false;
 
 const corpus = loadCorpus();
@@ -99,6 +107,14 @@ try {
 }
 
 const result = runChecks(tools, { client });
-console.log(ghFmt ? githubReport(result, label) : json ? jsonReport(result, label, VERSION) : textReport(result, label, VERSION, color));
+const out =
+  rawFormat === "github"
+    ? githubReport(result, label)
+    : rawFormat === "sarif"
+      ? sarifReport(result, label, VERSION)
+      : rawFormat === "json"
+        ? jsonReport(result, label, VERSION)
+        : textReport(result, label, VERSION, color);
+console.log(out);
 const worst = result.findings.reduce((m, f) => Math.max(m, FAIL_ORD[f.severity]), 0);
 process.exit(FAIL_ORD[failOn] > 0 && worst >= FAIL_ORD[failOn] ? 1 : 0);
